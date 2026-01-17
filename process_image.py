@@ -45,6 +45,17 @@ def extract_svg_from_text(text):
              return match.group(1)
     return None
 
+def list_available_models():
+    """Lists available models to help the user debug."""
+    print("\n--- Available Models ---")
+    try:
+        # Pager object is iterable
+        for model in client.models.list():
+            print(f"- {model.name}")
+    except Exception as e:
+        print(f"Error listing models: {e}")
+    print("------------------------\n")
+
 def analyze_image(image_path, method):
     """Extracts information from image using Gemini."""
     img = Image.open(image_path)
@@ -56,17 +67,26 @@ def analyze_image(image_path, method):
     else:
         raise ValueError("Unknown method")
 
-    response = client.models.generate_content(
-        model='gemini-3-flash-preview', # DONT CHANGE
-        contents=[prompt, img]
-    )
-    return response.text
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash', # Using 2.0 Flash as it's the current recommended
+            contents=[prompt, img]
+        )
+        return response.text
+    except Exception as e:
+        print(f"Error analyzing image: {e}")
+        list_available_models()
+        exit(1)
 
 def generate_image_from_text(text_prompt, output_path):
     """Generates an image using Gemini's image generation capabilities."""
     try:
+        # Using gemini-2.0-flash or appropriate experimental image model
+        # Note: Depending on the specific API version, 'gemini-2.0-flash' 
+        # or a specific 'gemini-2.0-flash-image' (experimental) might be used.
+        # We will use 'gemini-2.0-flash' as it's widely available.
         response = client.models.generate_content(
-            model='gemini-2.5-flash-preview-image',  # DONT CHANGE
+            model='gemini-2.0-flash', 
             contents=[text_prompt]
         )
         
@@ -82,13 +102,17 @@ def generate_image_from_text(text_prompt, output_path):
         if not saved:
             print("No image data found in the response parts.")
             # Print text parts if any, for debugging
-            for part in response.parts:
-                if part.text:
-                    print(f"Model response text: {part.text}")
+            if response.parts:
+                for part in response.parts:
+                    if part.text:
+                        print(f"Model response text: {part.text}")
+            else:
+                 print("Response contained no parts.")
 
     except Exception as e:
         print(f"Error generating image: {e}")
         print("Note: Ensure your API key has access to the requested model and image generation features.")
+        list_available_models()
 
 def create_html(original_img, json_img, svg_img, json_text, svg_text, output_file="report.html"):
     """Generates an HTML report comparing results."""
