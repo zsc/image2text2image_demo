@@ -6,6 +6,9 @@ SCRIPT := process_image.py
 
 # 默认输入图片 (可以通过命令覆盖: make run INPUT=my_image.jpg)
 INPUT ?= test_image.jpg
+# 批量处理默认目录
+INPUT_DIR ?= images
+OUTPUT_DIR ?= output_batch
 
 # 输出目录
 OUT_DIR := output
@@ -19,23 +22,30 @@ JSON_IMG := $(OUT_DIR)/reconstructed_json.png
 SVG_IMG := $(OUT_DIR)/reconstructed_svg.png
 REPORT := $(OUT_DIR)/report.html
 
-.PHONY: all help install clean run
+.PHONY: all help install clean run batch
 
 all: run
 
 help:
 	@echo "用法:"
-	@echo "  make install         安装依赖"
-	@echo "  make run             使用默认图片 ($(INPUT)) 运行流程"
-	@echo "  make run INPUT=x.jpg 使用指定图片运行流程"
-	@echo "  make clean           清理输出目录"
+	@echo "  make install                 安装依赖"
+	@echo "  make run                     使用默认图片 ($(INPUT)) 运行流程"
+	@echo "  make run INPUT=x.jpg         使用指定图片运行流程"
+	@echo "  make batch                   批量处理默认目录 ($(INPUT_DIR))"
+	@echo "  make batch INPUT_DIR=dir     批量处理指定目录"
+	@echo "  make clean                   清理输出目录"
 
 install:
 	$(PIP) install -r requirements.txt
 
-# 运行完整流程
+# 运行完整流程 (单图)
 run: $(REPORT)
 	@echo "流程完成。请查看报告: $(REPORT)"
+
+# 批量处理 (多图)
+batch:
+	@echo "开始批量处理目录: $(INPUT_DIR) -> $(OUTPUT_DIR)..."
+	$(PYTHON) $(SCRIPT) batch --input-dir $(INPUT_DIR) --output-dir $(OUTPUT_DIR)
 
 # 步骤 1: 分析图片 (JSON 方法)
 $(JSON_TEXT): $(INPUT)
@@ -69,4 +79,4 @@ $(REPORT): $(JSON_IMG) $(SVG_IMG) $(SCRIPT)
 		--output $@
 
 clean:
-	rm -rf $(OUT_DIR)
+	rm -rf $(OUT_DIR) $(OUTPUT_DIR)

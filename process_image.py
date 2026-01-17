@@ -70,20 +70,24 @@ def analyze_image(image_path, method):
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Using 2.0 Flash as it's the current recommended
+            model='gemini-2.0-flash', # Using 2.0 Flash as it's the current recommended
             contents=[prompt, img]
         )
         return response.text
     except Exception as e:
         print(f"Error analyzing image: {e}")
         list_available_models()
-        exit(1)
+        raise e
 
 def generate_image_from_text(text_prompt, output_path):
     """Generates an image using Gemini's image generation capabilities."""
     try:
+        # Using gemini-2.0-flash or appropriate experimental image model
+        # Note: Depending on the specific API version, 'gemini-2.0-flash'
+        # or a specific 'gemini-2.0-flash-image' (experimental) might be used.
+        # We will use 'gemini-2.0-flash' as it's widely available.
         response = client.models.generate_content(
-            model='gemini-2.5-flash-image', 
+            model='gemini-2.0-flash', 
             contents=[text_prompt]
         )
         
@@ -110,114 +114,128 @@ def generate_image_from_text(text_prompt, output_path):
         print(f"Error generating image: {e}")
         print("Note: Ensure your API key has access to the requested model and image generation features.")
         list_available_models()
+        # We don't raise here to allow the pipeline to continue even if generation fails
 
-def create_html(original_img, json_img, svg_img, json_text, svg_text, output_file="report.html"):
-    """Generates an HTML report comparing results."""
+def batch_process(input_dir, output_dir):
+    """Processes all images in a directory."""
+    input_path = Path(input_dir)
+    output_path = Path(output_dir)
     
-    def read_file_safe(path):
-        if path and os.path.exists(path):
-            return Path(path).read_text(encoding='utf-8')
-        return ""
+    if not input_path.exists():
+        print(f"Error: Input directory '{input_dir}' does not exist.")
+        return
 
-    raw_json_text = read_file_safe(json_text)
-    raw_svg_text = read_file_safe(svg_text)
-
-    json_display = extract_json_from_text(raw_json_text)
-    svg_json_part = extract_json_from_text(raw_svg_text)
-    svg_svg_part = extract_svg_from_text(raw_svg_text)
+    output_path.mkdir(parents=True, exist_ok=True)
     
-    if svg_json_part and svg_svg_part:
-        svg_display = f"JSON:\n{svg_json_part}\n\nSVG:\n{svg_svg_part}"
-    else:
-        svg_display = raw_svg_text
+    image_extensions = {'.jpg', '.jpeg', '.png', '.webp', '.heic', '.bmp'}
+    images = [f for f in input_path.iterdir() if f.suffix.lower() in image_extensions]
+    
+    if not images:
+        print(f"No images found in '{input_dir}'.")
+        return
 
-    # Prepare paths and copy original image to output directory
-    out_dir = os.path.dirname(output_file)
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    print(f"Found {len(images)} images. Starting batch processing...")
+    
+    report_links = []
 
-    orig_rel = ""
-    if original_img and os.path.exists(original_img):
-        orig_filename = os.path.basename(original_img)
-        dest_path = os.path.join(out_dir, orig_filename)
+    for index, img_file in enumerate(images, 1):
+        print(f"\n[{index}/{len(images)}] Processing {img_file.name}...")
+        
+        # Create a subfolder for this image's results
+        # Use simple name to avoid filesystem issues
+        safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', img_file.stem)
+        img_out_dir = output_path / safe_name
+        img_out_dir.mkdir(exist_ok=True)
+        
+        # Define paths
+        json_text_path = img_out_dir / "analysis_json.txt"
+        svg_text_path = img_out_dir / "analysis_svg.txt"
+        json_img_path = img_out_dir / "reconstructed_json.png"
+        svg_img_path = img_out_dir / "reconstructed_svg.png"
+        report_path = img_out_dir / "report.html"
+        
         try:
-            # Copy file if it's not the same file
-            if os.path.abspath(original_img) != os.path.abspath(dest_path):
-                shutil.copy2(original_img, dest_path)
-            orig_rel = orig_filename
+            # 1. Analyze JSON
+            print("  - Analyzing (JSON)...")
+            json_text = analyze_image(img_file, "json")
+            json_text_path.write_text(json_text, encoding='utf-8')
+            
+            # 2. Analyze JSON+SVG
+            print("  - Analyzing (JSON+SVG)...")
+            svg_text = analyze_image(img_file, "json_svg")
+            svg_text_path.write_text(svg_text, encoding='utf-8')
+            
+            # 3. Generate JSON Image
+            print("  - Generating Image (JSON)...")
+            prompt_json = f"Generate an image based on the following structured data/description:\n\n{json_text}"
+            generate_image_from_text(prompt_json, json_img_path)
+            
+            # 4. Generate SVG Image
+            print("  - Generating Image (SVG)...")
+            prompt_svg = f"Generate an image based on the following structured data/description:\n\n{svg_text}"
+            generate_image_from_text(prompt_svg, svg_img_path)
+            
+            # 5. Report
+            print("  - Creating Report...")
+            create_html(str(img_file), str(json_img_path), str(svg_img_path), str(json_text_path), str(svg_text_path), str(report_path))
+            
+            # Store link for index
+            # Use relative path from output_dir to report_path
+            rel_link = f"{safe_name}/report.html"
+            report_links.append((img_file.name, rel_link))
+            
         except Exception as e:
-            print(f"Warning: Could not copy original image: {e}")
-            orig_rel = os.path.basename(original_img) # Fallback
+            print(f"  - Error processing {img_file.name}: {e}")
 
-    json_img_rel = os.path.basename(json_img) if json_img and os.path.exists(json_img) else ""
-    svg_img_rel = os.path.basename(svg_img) if svg_img and os.path.exists(svg_img) else ""
-
-    html = f"""
+    # Create Index HTML
+    index_html = output_path / "index.html"
+    html_content = """
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Image Reconstruction Report</title>
+        <title>Batch Processing Report</title>
         <style>
-            body {{ font-family: sans-serif; margin: 20px; }}
-            .container {{ display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; }}
-            .card {{ border: 1px solid #ccc; padding: 10px; border-radius: 8px; max-width: 400px; width: 100%; }}
-            img {{ max-width: 100%; height: auto; border: 1px solid #eee; }}
-            pre {{ background: #f4f4f4; padding: 10px; overflow-x: auto; max-height: 200px; white-space: pre-wrap; word-wrap: break-word; }}
+            body { font-family: sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+            h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 15px 0; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+            a { text-decoration: none; color: #007bff; font-weight: bold; font-size: 1.1em; }
+            a:hover { text-decoration: underline; color: #0056b3; }
+            .status { font-size: 0.9em; color: #666; margin-left: 10px; }
         </style>
     </head>
     <body>
-        <h1>Reconstruction Report</h1>
-        <div class="container">
-            <div class="card">
-                <h2>Original</h2>
-                <img src="{orig_rel}" alt="Original">
-            </div>
+        <h1>Batch Processing Index</h1>
+        <p>Processed images from directory.</p>
+        <ul>
     """
+    for name, link in report_links:
+        html_content += f'<li><a href="{link}">{name}</a> <span class="status">→ View Report</span></li>'
     
-    if json_img_rel:
-        html += f"""
-            <div class="card">
-                <h2>JSON Method</h2>
-                <img src="{json_img_rel}" alt="JSON Reconstructed">
-                <h3>Extracted Data</h3>
-                <pre>{json_display}</pre>
-            </div>
-        """
-        
-    if svg_img_rel:
-        html += f"""
-            <div class="card">
-                <h2>JSON + SVG Method</h2>
-                <img src="{svg_img_rel}" alt="SVG Reconstructed">
-                <h3>Extracted Data</h3>
-                <pre>{svg_display}</pre>
-            </div>
-        """
+    if not report_links:
+        html_content += "<li>No reports generated.</li>"
 
-    html += """
-        </div>
-    </body>
-    </html>
-    """
+    html_content += "</ul></body></html>"
     
-    with open(output_file, "w") as f:
-        f.write(html)
-    print(f"HTML report generated: {output_file}")
-
+    index_html.write_text(html_content, encoding='utf-8')
+    print(f"\nBatch processing complete. Index at: {index_html}")
 
 def main():
     parser = argparse.ArgumentParser(description="Image to Text to Image Pipeline")
     subparsers = parser.add_subparsers(dest="command")
 
+    # Analyze
     analyze_parser = subparsers.add_parser("analyze")
     analyze_parser.add_argument("image_path")
     analyze_parser.add_argument("--method", choices=["json", "json_svg"], required=True)
     analyze_parser.add_argument("--output-text", required=True)
 
+    # Generate Image
     gen_parser = subparsers.add_parser("generate")
     gen_parser.add_argument("input_text")
     gen_parser.add_argument("output_image")
     
+    # Report
     report_parser = subparsers.add_parser("report")
     report_parser.add_argument("--original", required=True)
     report_parser.add_argument("--json-img")
@@ -226,13 +244,21 @@ def main():
     report_parser.add_argument("--svg-text")
     report_parser.add_argument("--output", default="report.html")
 
+    # Batch
+    batch_parser = subparsers.add_parser("batch")
+    batch_parser.add_argument("--input-dir", required=True, help="Directory containing images to process")
+    batch_parser.add_argument("--output-dir", required=True, help="Directory to save reports and results")
+
     args = parser.parse_args()
 
     if args.command == "analyze":
-        raw_text = analyze_image(args.image_path, args.method)
-        with open(args.output_text, "w") as f:
-            f.write(raw_text)
-        print(f"Analysis complete. Saved to {args.output_text}")
+        try:
+            raw_text = analyze_image(args.image_path, args.method)
+            with open(args.output_text, "w") as f:
+                f.write(raw_text)
+            print(f"Analysis complete. Saved to {args.output_text}")
+        except Exception:
+            exit(1)
 
     elif args.command == "generate":
         with open(args.input_text, "r") as f:
@@ -242,6 +268,9 @@ def main():
 
     elif args.command == "report":
         create_html(args.original, args.json_img, args.svg_img, args.json_text, args.svg_text, args.output)
+
+    elif args.command == "batch":
+        batch_process(args.input_dir, args.output_dir)
 
 if __name__ == "__main__":
     main()

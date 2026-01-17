@@ -60,9 +60,23 @@ make run
 make run INPUT=my_photo.jpg
 ```
 
-### 3. 清理输出
+### 3. 批量处理目录 (Batch)
 
-清理生成的 `output/` 目录：
+要一次性处理一个目录下的所有图片（支持 jpg, png, webp 等）：
+
+```bash
+# 处理默认目录 (images/)
+make batch
+
+# 处理指定目录
+make batch INPUT_DIR=/path/to/my_images OUTPUT_DIR=my_batch_output
+```
+
+生成的报告索引将位于输出目录的 `index.html`。
+
+### 4. 清理输出
+
+清理生成的 `output/` 和 `output_batch/` 目录：
 
 ```bash
 make clean
