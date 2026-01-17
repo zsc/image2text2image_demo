@@ -2,6 +2,7 @@ import os
 import argparse
 import json
 import re
+import shutil
 from pathlib import Path
 from google import genai
 from PIL import Image
@@ -130,7 +131,24 @@ def create_html(original_img, json_img, svg_img, json_text, svg_text, output_fil
     else:
         svg_display = raw_svg_text
 
-    orig_rel = os.path.basename(original_img) if original_img else ""
+    # Prepare paths and copy original image to output directory
+    out_dir = os.path.dirname(output_file)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    orig_rel = ""
+    if original_img and os.path.exists(original_img):
+        orig_filename = os.path.basename(original_img)
+        dest_path = os.path.join(out_dir, orig_filename)
+        try:
+            # Copy file if it's not the same file
+            if os.path.abspath(original_img) != os.path.abspath(dest_path):
+                shutil.copy2(original_img, dest_path)
+            orig_rel = orig_filename
+        except Exception as e:
+            print(f"Warning: Could not copy original image: {e}")
+            orig_rel = os.path.basename(original_img) # Fallback
+
     json_img_rel = os.path.basename(json_img) if json_img and os.path.exists(json_img) else ""
     svg_img_rel = os.path.basename(svg_img) if svg_img and os.path.exists(svg_img) else ""
 
