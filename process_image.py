@@ -51,7 +51,7 @@ def extract_svg_from_text(text):
 
 def analyze_image(image_path, method):
     """Extracts information from image using Gemini."""
-    model = genai.GenerativeModel('gemini-1.5-flash') # Using Flash for speed/cost, or Pro for quality
+    model = genai.GenerativeModel('gemini-3-flash') # Using Flash for speed/cost, or Pro for quality
     
     img = Image.open(image_path)
     
