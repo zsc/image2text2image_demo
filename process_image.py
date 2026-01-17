@@ -57,29 +57,42 @@ def analyze_image(image_path, method):
         raise ValueError("Unknown method")
 
     response = client.models.generate_content(
-        model='gemini-2.0-flash', # Updated to 2.0 Flash as it's the current recommended
+        model='gemini-2.5-flash-preview-image', # DONT CHANGE
         contents=[prompt, img]
     )
     return response.text
 
 def generate_image_from_text(text_prompt, output_path):
-    """Generates an image using Imagen (via Gemini API) based on text."""
+    """Generates an image using Gemini's image generation capabilities."""
     try:
-        response = client.models.generate_image(
-            model='imagen-3',
-            prompt=text_prompt,
+        # Using gemini-2.0-flash or appropriate experimental image model
+        # Note: Depending on the specific API version, 'gemini-2.0-flash' 
+        # or a specific 'gemini-2.0-flash-image' (experimental) might be used.
+        # We will use 'gemini-2.0-flash' as it's widely available.
+        response = client.models.generate_content(
+            model='gemini-2.0-flash', 
+            contents=[text_prompt]
         )
         
-        # Save the generated image
-        if response.generated_images:
-            response.generated_images[0].image.save(output_path)
-            print(f"Image saved to {output_path}")
-        else:
-            print("No image generated.")
+        saved = False
+        for part in response.parts:
+            if part.inline_data is not None:
+                image = part.as_image()
+                image.save(output_path)
+                print(f"Image saved to {output_path}")
+                saved = True
+                break
+        
+        if not saved:
+            print("No image data found in the response parts.")
+            # Print text parts if any, for debugging
+            for part in response.parts:
+                if part.text:
+                    print(f"Model response text: {part.text}")
 
     except Exception as e:
         print(f"Error generating image: {e}")
-        print("Note: Ensure your API key has access to Imagen models.")
+        print("Note: Ensure your API key has access to the requested model and image generation features.")
 
 def create_html(original_img, json_img, svg_img, json_text, svg_text, output_file="report.html"):
     """Generates an HTML report comparing results."""
