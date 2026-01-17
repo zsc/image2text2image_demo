@@ -58,7 +58,7 @@ $(SVG_IMG): $(SVG_TEXT)
 	$(PYTHON) $(SCRIPT) generate $(SVG_TEXT) $@
 
 # 步骤 5: 生成 HTML 报告
-$(REPORT): $(JSON_IMG) $(SVG_IMG)
+$(REPORT): $(JSON_IMG) $(SVG_IMG) $(SCRIPT)
 	@echo "正在生成 HTML 报告..."
 	$(PYTHON) $(SCRIPT) report \
 		--original $(INPUT) \
