@@ -69,7 +69,7 @@ def analyze_image(image_path, method):
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash', # Using 2.0 Flash as it's the current recommended
+            model='gemini-2.5-flash', # Using 2.0 Flash as it's the current recommended
             contents=[prompt, img]
         )
         return response.text
@@ -81,12 +81,8 @@ def analyze_image(image_path, method):
 def generate_image_from_text(text_prompt, output_path):
     """Generates an image using Gemini's image generation capabilities."""
     try:
-        # Using gemini-2.0-flash or appropriate experimental image model
-        # Note: Depending on the specific API version, 'gemini-2.0-flash' 
-        # or a specific 'gemini-2.0-flash-image' (experimental) might be used.
-        # We will use 'gemini-2.0-flash' as it's widely available.
         response = client.models.generate_content(
-            model='gemini-2.0-flash', 
+            model='gemini-2.5-flash-image', 
             contents=[text_prompt]
         )
         
