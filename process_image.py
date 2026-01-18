@@ -171,8 +171,27 @@ def batch_process(input_dir, output_dir):
             generate_image_from_text(prompt_json, json_img_path)
             
             # 4. Generate SVG Image
-            print("  - Generating Image (SVG)...")
-            prompt_svg = f"Generate an image based on the following structured data/description:\n\n{svg_text}"
+            print("  - Generating Image (JSON + SVG)...")
+            
+            # Try to extract clean JSON and SVG to verify we have both and structure the prompt
+            svg_part_json = extract_json_from_text(svg_text)
+            svg_part_svg = extract_svg_from_text(svg_text)
+            
+            # Check if extraction was successful 
+            # (extract_json returns original text on failure, extract_svg returns None)
+            has_json = svg_part_json and svg_part_json != svg_text
+            has_svg = svg_part_svg is not None
+            
+            if has_json and has_svg:
+                prompt_svg = (
+                    "Generate an image based on the following combined information:\n\n"
+                    f"1. JSON Description:\n{svg_part_json}\n\n"
+                    f"2. SVG Structure:\n{svg_part_svg}"
+                )
+            else:
+                # Fallback: use the raw text if we couldn't parse distinct blocks
+                prompt_svg = f"Generate an image based on the following structured data (containing JSON and/or SVG):\n\n{svg_text}"
+            
             generate_image_from_text(prompt_svg, svg_img_path)
             
             # 5. Report
