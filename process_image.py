@@ -195,6 +195,16 @@ def create_html(original_img, json_img, svg_img, json_text, svg_text, output_fil
             </div>
         """
 
+    if svg_svg_part:
+        html += f"""
+            <div class="card">
+                <h2>Extracted SVG Rendering</h2>
+                <div style="border: 1px solid #eee; padding: 10px; background: white; display: flex; justify-content: center; align-items: center; min-height: 200px;">
+                    {svg_svg_part}
+                </div>
+            </div>
+        """
+
     html += """
         </div>
     </body>
