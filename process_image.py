@@ -64,13 +64,13 @@ def analyze_image(image_path, method):
     if method == "json":
         prompt = "Please extract this image as JSON structured data. Extract all visible information in the image as structured text."
     elif method == "json_svg":
-        prompt = "Please extract this image as JSON structured data. Extract all visible information in the image as structured text. Then, also carefully convert the image details into SVG format."
+        prompt = "First, please extract this image as JSON structured data in ```json block. Then, also carefully convert the image details into SVG format in ```svg block."
     else:
         raise ValueError("Unknown method")
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash', # Using 2.0 Flash as it's the current recommended
+            model='gemini-3-pro-preview',
             contents=[prompt, img]
         )
         return response.text
@@ -82,12 +82,8 @@ def analyze_image(image_path, method):
 def generate_image_from_text(text_prompt, output_path):
     """Generates an image using Gemini's image generation capabilities."""
     try:
-        # Using gemini-2.0-flash or appropriate experimental image model
-        # Note: Depending on the specific API version, 'gemini-2.0-flash'
-        # or a specific 'gemini-2.0-flash-image' (experimental) might be used.
-        # We will use 'gemini-2.0-flash' as it's widely available.
         response = client.models.generate_content(
-            model='gemini-2.0-flash', 
+            model='gemini-3-pro-image-preview',
             contents=[text_prompt]
         )
         
