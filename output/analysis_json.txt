@@ -1,0 +1,150 @@
+```json
+{
+  "image_analysis": {
+    "location_context": "Urban street intersection in Taiwan (New Taipei City, implied by 'Zhengyi N. Rd')",
+    "scene_description": "A busy daytime street scene featuring heavy scooter and car traffic, dominated by dense, multi-layered vertical commercial signage and traffic infrastructure.",
+    "caption_text": "大禾邸家-臺灣的街景為什麼那麼「特別」？"
+  },
+  "extracted_text_objects": {
+    "traffic_signage": [
+      {
+        "type": "Street Name Sign",
+        "text_chinese": "正義北路",
+        "text_english": "Zhengyi N. Rd.",
+        "color": "Green background, white text",
+        "location": "Far left pole"
+      },
+      {
+        "type": "Traffic Restriction",
+        "text_chinese": "6-23 禁止左轉",
+        "meaning": "No left turn between 06:00 and 23:00",
+        "color": "White background, black text",
+        "location": "Overhead gantry"
+      },
+      {
+        "type": "Traffic Light",
+        "status": "Red light",
+        "countdown_timer": "30",
+        "location": "Top center"
+      }
+    ],
+    "commercial_signage": {
+      "left_side": [
+        {
+          "text": "BIRKENSTOCK",
+          "orientation": "Vertical",
+          "color": "Beige background, blue text"
+        },
+        {
+          "text_chinese": "義上衣 2F",
+          "orientation": "Horizontal",
+          "location": "Below Birkenstock"
+        },
+        {
+          "text": "KTV",
+          "orientation": "Vertical",
+          "color": "Purple background, light text"
+        },
+        {
+          "text_chinese": "粥",
+          "meaning": "Porridge/Congee",
+          "color": "Orange neon/box"
+        },
+        {
+          "text_chinese": "眼科",
+          "meaning": "Ophthalmology",
+          "color": "Blue background"
+        }
+      ],
+      "center_background": [
+        {
+          "text_chinese": "MOTEL / 名 商務汽車旅館",
+          "text_english": "MOTEL",
+          "location": "Top center background"
+        },
+        {
+          "text_chinese": "千山淨水",
+          "color": "Blue and white vertical"
+        },
+        {
+          "text_chinese": "POYA 寶雅",
+          "color": "Pink background"
+        },
+        {
+          "text": "7-ELEVEN Logo",
+          "type": "Convenience Store"
+        }
+      ],
+      "right_side": [
+        {
+          "text_chinese": "仁愛... 6000坪帝... 58-72坪... 2982-2...",
+          "type": "Real Estate Advertisement",
+          "location": "Top right corner"
+        },
+        {
+          "text_chinese": "寶島眼鏡",
+          "meaning": "Formosa Optical",
+          "orientation": "Vertical",
+          "color": "Yellow background, blue text"
+        },
+        {
+          "text": "SO NICE",
+          "orientation": "Vertical",
+          "color": "Black background, white text"
+        },
+        {
+          "text_chinese": "年青人眼鏡",
+          "meaning": "Young People Glasses",
+          "orientation": "Vertical",
+          "color": "Blue background, white text"
+        },
+        {
+          "text_chinese": "聯成電腦",
+          "orientation": "Vertical",
+          "color": "Red background"
+        },
+        {
+          "text_chinese": "阿瘦皮鞋",
+          "text_english": "A.S.O",
+          "orientation": "Vertical",
+          "color": "White background, black text"
+        },
+        {
+          "text_chinese": "小林眼鏡",
+          "meaning": "Kobayashi Optical",
+          "orientation": "Horizontal",
+          "color": "Red background"
+        }
+      ]
+    }
+  },
+  "traffic_elements": {
+    "vehicles": [
+      {
+        "type": "Car",
+        "color": "White",
+        "make_model": "Audi (likely A3/A4)",
+        "license_plate_fragment": "ATM-5085",
+        "location": "Foreground left lane"
+      },
+      {
+        "type": "Taxi",
+        "color": "Yellow",
+        "model_type": "Minivan/Wagon",
+        "location": "Mid-ground left"
+      },
+      {
+        "type": "Scooters",
+        "count": "Many (>15 visible)",
+        "riders": "Wearing helmets",
+        "location": "Foreground and mid-ground spread across lanes"
+      },
+      {
+        "type": "Car",
+        "color": "Silver/Grey",
+        "location": "Right side foreground"
+      }
+    ]
+  }
+}
+```

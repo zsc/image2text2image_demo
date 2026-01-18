@@ -13,7 +13,6 @@ venv/
 env/
 
 # Project specific
-output/
 test_image.jpg
 *.log
 

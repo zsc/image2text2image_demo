@@ -1,0 +1,437 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Image Reconstruction Report</title>
+        <style>
+            body { font-family: sans-serif; margin: 20px; }
+            .container { display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; }
+            .card { border: 1px solid #ccc; padding: 10px; border-radius: 8px; max-width: 400px; width: 100%; }
+            img { max-width: 100%; height: auto; border: 1px solid #eee; }
+            pre { background: #f4f4f4; padding: 10px; overflow-x: auto; max-height: 200px; white-space: pre-wrap; word-wrap: break-word; }
+        </style>
+    </head>
+    <body>
+        <h1>Reconstruction Report</h1>
+        <div class="container">
+            <div class="card">
+                <h2>Original</h2>
+                <img src="test_image.jpg" alt="Original">
+            </div>
+    
+            <div class="card">
+                <h2>JSON Method</h2>
+                <img src="reconstructed_json.png" alt="JSON Reconstructed">
+                <h3>Extracted Data</h3>
+                <pre>{
+  "image_analysis": {
+    "location_context": "Urban street intersection in Taiwan (New Taipei City, implied by 'Zhengyi N. Rd')",
+    "scene_description": "A busy daytime street scene featuring heavy scooter and car traffic, dominated by dense, multi-layered vertical commercial signage and traffic infrastructure.",
+    "caption_text": "大禾邸家-臺灣的街景為什麼那麼「特別」？"
+  },
+  "extracted_text_objects": {
+    "traffic_signage": [
+      {
+        "type": "Street Name Sign",
+        "text_chinese": "正義北路",
+        "text_english": "Zhengyi N. Rd.",
+        "color": "Green background, white text",
+        "location": "Far left pole"
+      },
+      {
+        "type": "Traffic Restriction",
+        "text_chinese": "6-23 禁止左轉",
+        "meaning": "No left turn between 06:00 and 23:00",
+        "color": "White background, black text",
+        "location": "Overhead gantry"
+      },
+      {
+        "type": "Traffic Light",
+        "status": "Red light",
+        "countdown_timer": "30",
+        "location": "Top center"
+      }
+    ],
+    "commercial_signage": {
+      "left_side": [
+        {
+          "text": "BIRKENSTOCK",
+          "orientation": "Vertical",
+          "color": "Beige background, blue text"
+        },
+        {
+          "text_chinese": "義上衣 2F",
+          "orientation": "Horizontal",
+          "location": "Below Birkenstock"
+        },
+        {
+          "text": "KTV",
+          "orientation": "Vertical",
+          "color": "Purple background, light text"
+        },
+        {
+          "text_chinese": "粥",
+          "meaning": "Porridge/Congee",
+          "color": "Orange neon/box"
+        },
+        {
+          "text_chinese": "眼科",
+          "meaning": "Ophthalmology",
+          "color": "Blue background"
+        }
+      ],
+      "center_background": [
+        {
+          "text_chinese": "MOTEL / 名 商務汽車旅館",
+          "text_english": "MOTEL",
+          "location": "Top center background"
+        },
+        {
+          "text_chinese": "千山淨水",
+          "color": "Blue and white vertical"
+        },
+        {
+          "text_chinese": "POYA 寶雅",
+          "color": "Pink background"
+        },
+        {
+          "text": "7-ELEVEN Logo",
+          "type": "Convenience Store"
+        }
+      ],
+      "right_side": [
+        {
+          "text_chinese": "仁愛... 6000坪帝... 58-72坪... 2982-2...",
+          "type": "Real Estate Advertisement",
+          "location": "Top right corner"
+        },
+        {
+          "text_chinese": "寶島眼鏡",
+          "meaning": "Formosa Optical",
+          "orientation": "Vertical",
+          "color": "Yellow background, blue text"
+        },
+        {
+          "text": "SO NICE",
+          "orientation": "Vertical",
+          "color": "Black background, white text"
+        },
+        {
+          "text_chinese": "年青人眼鏡",
+          "meaning": "Young People Glasses",
+          "orientation": "Vertical",
+          "color": "Blue background, white text"
+        },
+        {
+          "text_chinese": "聯成電腦",
+          "orientation": "Vertical",
+          "color": "Red background"
+        },
+        {
+          "text_chinese": "阿瘦皮鞋",
+          "text_english": "A.S.O",
+          "orientation": "Vertical",
+          "color": "White background, black text"
+        },
+        {
+          "text_chinese": "小林眼鏡",
+          "meaning": "Kobayashi Optical",
+          "orientation": "Horizontal",
+          "color": "Red background"
+        }
+      ]
+    }
+  },
+  "traffic_elements": {
+    "vehicles": [
+      {
+        "type": "Car",
+        "color": "White",
+        "make_model": "Audi (likely A3/A4)",
+        "license_plate_fragment": "ATM-5085",
+        "location": "Foreground left lane"
+      },
+      {
+        "type": "Taxi",
+        "color": "Yellow",
+        "model_type": "Minivan/Wagon",
+        "location": "Mid-ground left"
+      },
+      {
+        "type": "Scooters",
+        "count": "Many (>15 visible)",
+        "riders": "Wearing helmets",
+        "location": "Foreground and mid-ground spread across lanes"
+      },
+      {
+        "type": "Car",
+        "color": "Silver/Grey",
+        "location": "Right side foreground"
+      }
+    ]
+  }
+}</pre>
+            </div>
+        
+            <div class="card">
+                <h2>JSON + SVG Method</h2>
+                <img src="reconstructed_svg.png" alt="SVG Reconstructed">
+                <h3>Extracted Data</h3>
+                <pre>JSON:
+{
+  "image_analysis": {
+    "type": "Urban Street Photography",
+    "location_context": "Taiwan (indicated by Traditional Chinese characters and street layout)",
+    "mood": "Busy, chaotic, dense, urban",
+    "perspective": "Eye-level, looking down a straight road"
+  },
+  "detected_elements": {
+    "foreground": {
+      "vehicles": [
+        {
+          "type": "Scooters/Motorcycles",
+          "count": "High density",
+          "details": "Riders wearing helmets, moving towards camera"
+        },
+        {
+          "type": "Car",
+          "color": "White",
+          "location": "Left lane"
+        },
+        {
+          "type": "Car",
+          "color": "Silver",
+          "location": "Right lane"
+        }
+      ],
+      "infrastructure": [
+        {
+          "object": "Electrical Control Box",
+          "color": "White with red/white striped markings",
+          "location": "Bottom Left"
+        }
+      ]
+    },
+    "midground": {
+      "infrastructure": [
+        {
+          "object": "Overhead Traffic Gantry",
+          "material": "Metal truss",
+          "spans": "Across the street"
+        },
+        {
+          "object": "Pedestrian Overpass",
+          "color": "Teal/Light Blue",
+          "location": "Distance center"
+        }
+      ]
+    },
+    "signage": {
+      "vertical_signs": [
+        {
+          "text": "BIRKENSTOCK",
+          "color": "Dark text on beige background",
+          "orientation": "Vertical",
+          "location": "Left"
+        },
+        {
+          "text": "正義北路 (Zhengyi N. Rd.)",
+          "color": "White text on green background",
+          "type": "Street Name Sign",
+          "location": "Left"
+        },
+        {
+          "text": "KTV",
+          "color": "Blue/Purple",
+          "location": "Left"
+        },
+        {
+          "text": "MOTEL",
+          "color": "Red/White",
+          "location": "Right (high)"
+        },
+        {
+          "text": "SO NICE",
+          "color": "Black background",
+          "location": "Right"
+        },
+        {
+          "text": "寶島眼鏡 (Formosa Optical)",
+          "color": "Yellow/Red",
+          "location": "Right"
+        }
+      ],
+      "traffic_signs": [
+        {
+          "text": "6-23 禁止左轉 (No Left Turn 6am-11pm)",
+          "location": "Center overhead"
+        }
+      ]
+    }
+  },
+  "caption_text": {
+    "content": "大禾邸家-臺灣的街景為什麼那麼「特別」？",
+    "translation_approximation": "Dahe Mansion - Why is Taiwan's streetscape so 'special'?"
+  },
+  "dominant_colors": [
+    "#808080", 
+    "#F5F5DC", 
+    "#2E8B57", 
+    "#FF0000", 
+    "#0000FF"
+  ]
+}
+
+SVG:
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background: Sky and distant buildings -->
+  <rect x="0" y="0" width="800" height="400" fill="#dceef5" />
+  
+  <!-- Road Perspective -->
+  <polygon points="100,600 350,350 450,350 700,600" fill="#555555" />
+  <line x1="400" y1="350" x2="400" y2="600" stroke="#777" stroke-width="2" stroke-dasharray="10,10" />
+
+  <!-- Distant Buildings -->
+  <rect x="300" y="200" width="200" height="150" fill="#cba898" />
+  <rect x="360" y="320" width="80" height="30" fill="#40e0d0" opacity="0.8" /> <!-- Pedestrian bridge -->
+
+  <!-- Left Side Signs -->
+  <!-- Birkenstock Sign -->
+  <rect x="120" y="50" width="80" height="350" fill="#e0d0b0" stroke="#333" stroke-width="1" />
+  <text x="160" y="200" font-family="Arial" font-weight="bold" font-size="24" fill="#111" transform="rotate(90, 160, 200)">BIRKENSTOCK</text>
+  
+  <!-- Green Street Sign -->
+  <rect x="40" y="220" width="50" height="150" fill="#006400" stroke="#eee" stroke-width="2" />
+  <text x="65" y="295" font-family="Serif" font-size="16" fill="white" writing-mode="tb">正義北路</text>
+
+  <!-- KTV Sign -->
+  <rect x="220" y="150" width="40" height="120" fill="#4b0082" />
+  <text x="240" y="210" font-family="Arial" font-size="14" fill="white" transform="rotate(90, 240, 210)">KTV</text>
+
+  <!-- Right Side Signs (Cluttered Look) -->
+  <rect x="700" y="80" width="60" height="300" fill="#cc0000" /> <!-- Generic Red Sign -->
+  <rect x="640" y="120" width="50" height="250" fill="#ffcc00" /> <!-- Glasses Shop -->
+  <text x="665" y="200" font-family="Serif" font-size="14" fill="black" writing-mode="tb">寶島眼鏡</text>
+  <rect x="590" y="150" width="40" height="200" fill="#222" /> <!-- So Nice -->
+  <text x="610" y="200" font-family="Arial" font-size="10" fill="white" transform="rotate(90, 610, 200)">SO NICE</text>
+  <rect x="550" y="100" width="30" height="150" fill="#eee" stroke="#aaa" /> <!-- Motel -->
+  <text x="565" y="150" font-family="Arial" font-size="10" fill="red" writing-mode="tb">MOTEL</text>
+
+  <!-- Overhead Gantry Structure -->
+  <line x1="50" y1="120" x2="750" y2="120" stroke="#555" stroke-width="8" />
+  <line x1="50" y1="150" x2="750" y2="150" stroke="#555" stroke-width="8" />
+  <line x1="100" y1="120" x2="120" y2="150" stroke="#555" stroke-width="2" />
+  <line x1="120" y1="120" x2="100" y2="150" stroke="#555" stroke-width="2" />
+  <line x1="300" y1="120" x2="320" y2="150" stroke="#555" stroke-width="2" />
+  
+  <!-- Traffic Sign Center -->
+  <rect x="350" y="80" width="100" height="60" fill="#fff" stroke="#333" stroke-width="2" />
+  <text x="400" y="100" font-family="Arial" font-size="14" text-anchor="middle" fill="black">6-23</text>
+  <text x="400" y="125" font-family="Serif" font-size="12" text-anchor="middle" fill="black">禁止左轉</text>
+
+  <!-- Foreground Traffic (Abstracted) -->
+  <!-- White Car Left -->
+  <rect x="180" y="450" width="100" height="60" rx="10" fill="#eee" />
+  <rect x="190" y="460" width="80" height="25" fill="#333" /> <!-- Windshield -->
+  
+  <!-- Scooters Cluster Center -->
+  <circle cx="380" cy="500" r="15" fill="#333" /> <!-- Helmet -->
+  <rect x="360" y="515" width="40" height="40" fill="#ffa500" /> <!-- Shirt -->
+  
+  <circle cx="450" cy="480" r="15" fill="#555" /> <!-- Helmet -->
+  <rect x="430" y="495" width="40" height="40" fill="#444" /> <!-- Shirt -->
+
+  <circle cx="650" cy="520" r="18" fill="#aaa" /> <!-- Helmet Right -->
+  <rect x="620" y="540" width="60" height="50" fill="#8b4513" /> <!-- Shirt Right -->
+
+  <!-- Electrical Box Left Bottom -->
+  <rect x="100" y="420" width="50" height="180" fill="#eee" stroke="#999" />
+  <line x1="100" y1="440" x2="150" y2="440" stroke="red" stroke-width="3" stroke-dasharray="10,5" />
+  <line x1="100" y1="550" x2="150" y2="550" stroke="red" stroke-width="3" stroke-dasharray="10,5" />
+
+  <!-- Bottom Caption Area -->
+  <rect x="0" y="550" width="800" height="50" fill="white" opacity="0.9" />
+  <text x="400" y="580" font-family="Serif" font-size="18" text-anchor="middle" fill="#555">大禾邸家-臺灣的街景為什麼那麼「特別」？</text>
+</svg></pre>
+            </div>
+        
+            <div class="card">
+                <h2>Extracted SVG Rendering</h2>
+                <div style="border: 1px solid #eee; padding: 10px; background: white; display: flex; justify-content: center; align-items: center; min-height: 200px;">
+                    <svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background: Sky and distant buildings -->
+  <rect x="0" y="0" width="800" height="400" fill="#dceef5" />
+  
+  <!-- Road Perspective -->
+  <polygon points="100,600 350,350 450,350 700,600" fill="#555555" />
+  <line x1="400" y1="350" x2="400" y2="600" stroke="#777" stroke-width="2" stroke-dasharray="10,10" />
+
+  <!-- Distant Buildings -->
+  <rect x="300" y="200" width="200" height="150" fill="#cba898" />
+  <rect x="360" y="320" width="80" height="30" fill="#40e0d0" opacity="0.8" /> <!-- Pedestrian bridge -->
+
+  <!-- Left Side Signs -->
+  <!-- Birkenstock Sign -->
+  <rect x="120" y="50" width="80" height="350" fill="#e0d0b0" stroke="#333" stroke-width="1" />
+  <text x="160" y="200" font-family="Arial" font-weight="bold" font-size="24" fill="#111" transform="rotate(90, 160, 200)">BIRKENSTOCK</text>
+  
+  <!-- Green Street Sign -->
+  <rect x="40" y="220" width="50" height="150" fill="#006400" stroke="#eee" stroke-width="2" />
+  <text x="65" y="295" font-family="Serif" font-size="16" fill="white" writing-mode="tb">正義北路</text>
+
+  <!-- KTV Sign -->
+  <rect x="220" y="150" width="40" height="120" fill="#4b0082" />
+  <text x="240" y="210" font-family="Arial" font-size="14" fill="white" transform="rotate(90, 240, 210)">KTV</text>
+
+  <!-- Right Side Signs (Cluttered Look) -->
+  <rect x="700" y="80" width="60" height="300" fill="#cc0000" /> <!-- Generic Red Sign -->
+  <rect x="640" y="120" width="50" height="250" fill="#ffcc00" /> <!-- Glasses Shop -->
+  <text x="665" y="200" font-family="Serif" font-size="14" fill="black" writing-mode="tb">寶島眼鏡</text>
+  <rect x="590" y="150" width="40" height="200" fill="#222" /> <!-- So Nice -->
+  <text x="610" y="200" font-family="Arial" font-size="10" fill="white" transform="rotate(90, 610, 200)">SO NICE</text>
+  <rect x="550" y="100" width="30" height="150" fill="#eee" stroke="#aaa" /> <!-- Motel -->
+  <text x="565" y="150" font-family="Arial" font-size="10" fill="red" writing-mode="tb">MOTEL</text>
+
+  <!-- Overhead Gantry Structure -->
+  <line x1="50" y1="120" x2="750" y2="120" stroke="#555" stroke-width="8" />
+  <line x1="50" y1="150" x2="750" y2="150" stroke="#555" stroke-width="8" />
+  <line x1="100" y1="120" x2="120" y2="150" stroke="#555" stroke-width="2" />
+  <line x1="120" y1="120" x2="100" y2="150" stroke="#555" stroke-width="2" />
+  <line x1="300" y1="120" x2="320" y2="150" stroke="#555" stroke-width="2" />
+  
+  <!-- Traffic Sign Center -->
+  <rect x="350" y="80" width="100" height="60" fill="#fff" stroke="#333" stroke-width="2" />
+  <text x="400" y="100" font-family="Arial" font-size="14" text-anchor="middle" fill="black">6-23</text>
+  <text x="400" y="125" font-family="Serif" font-size="12" text-anchor="middle" fill="black">禁止左轉</text>
+
+  <!-- Foreground Traffic (Abstracted) -->
+  <!-- White Car Left -->
+  <rect x="180" y="450" width="100" height="60" rx="10" fill="#eee" />
+  <rect x="190" y="460" width="80" height="25" fill="#333" /> <!-- Windshield -->
+  
+  <!-- Scooters Cluster Center -->
+  <circle cx="380" cy="500" r="15" fill="#333" /> <!-- Helmet -->
+  <rect x="360" y="515" width="40" height="40" fill="#ffa500" /> <!-- Shirt -->
+  
+  <circle cx="450" cy="480" r="15" fill="#555" /> <!-- Helmet -->
+  <rect x="430" y="495" width="40" height="40" fill="#444" /> <!-- Shirt -->
+
+  <circle cx="650" cy="520" r="18" fill="#aaa" /> <!-- Helmet Right -->
+  <rect x="620" y="540" width="60" height="50" fill="#8b4513" /> <!-- Shirt Right -->
+
+  <!-- Electrical Box Left Bottom -->
+  <rect x="100" y="420" width="50" height="180" fill="#eee" stroke="#999" />
+  <line x1="100" y1="440" x2="150" y2="440" stroke="red" stroke-width="3" stroke-dasharray="10,5" />
+  <line x1="100" y1="550" x2="150" y2="550" stroke="red" stroke-width="3" stroke-dasharray="10,5" />
+
+  <!-- Bottom Caption Area -->
+  <rect x="0" y="550" width="800" height="50" fill="white" opacity="0.9" />
+  <text x="400" y="580" font-family="Serif" font-size="18" text-anchor="middle" fill="#555">大禾邸家-臺灣的街景為什麼那麼「特別」？</text>
+</svg>
+                </div>
+            </div>
+        
+        </div>
+    </body>
+    </html>
+    
