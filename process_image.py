@@ -116,6 +116,99 @@ def generate_image_from_text(text_prompt, output_path):
         list_available_models()
         # We don't raise here to allow the pipeline to continue even if generation fails
 
+def create_html(original_img, json_img, svg_img, json_text, svg_text, output_file="report.html"):
+    """Generates an HTML report comparing results."""
+    
+    def read_file_safe(path):
+        if path and os.path.exists(path):
+            return Path(path).read_text(encoding='utf-8')
+        return ""
+
+    raw_json_text = read_file_safe(json_text)
+    raw_svg_text = read_file_safe(svg_text)
+
+    json_display = extract_json_from_text(raw_json_text)
+    svg_json_part = extract_json_from_text(raw_svg_text)
+    svg_svg_part = extract_svg_from_text(raw_svg_text)
+    
+    if svg_json_part and svg_svg_part:
+        svg_display = f"JSON:\n{svg_json_part}\n\nSVG:\n{svg_svg_part}"
+    else:
+        svg_display = raw_svg_text
+
+    # Prepare paths and copy original image to output directory
+    out_dir = os.path.dirname(output_file)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    orig_rel = ""
+    if original_img and os.path.exists(original_img):
+        orig_filename = os.path.basename(original_img)
+        dest_path = os.path.join(out_dir, orig_filename)
+        try:
+            # Copy file if it's not the same file
+            if os.path.abspath(original_img) != os.path.abspath(dest_path):
+                shutil.copy2(original_img, dest_path)
+            orig_rel = orig_filename
+        except Exception as e:
+            print(f"Warning: Could not copy original image: {e}")
+            orig_rel = os.path.basename(original_img) # Fallback
+
+    json_img_rel = os.path.basename(json_img) if json_img and os.path.exists(json_img) else ""
+    svg_img_rel = os.path.basename(svg_img) if svg_img and os.path.exists(svg_img) else ""
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Image Reconstruction Report</title>
+        <style>
+            body {{ font-family: sans-serif; margin: 20px; }}
+            .container {{ display: flex; flex-direction: row; gap: 20px; flex-wrap: wrap; }}
+            .card {{ border: 1px solid #ccc; padding: 10px; border-radius: 8px; max-width: 400px; width: 100%; }}
+            img {{ max-width: 100%; height: auto; border: 1px solid #eee; }}
+            pre {{ background: #f4f4f4; padding: 10px; overflow-x: auto; max-height: 200px; white-space: pre-wrap; word-wrap: break-word; }}
+        </style>
+    </head>
+    <body>
+        <h1>Reconstruction Report</h1>
+        <div class="container">
+            <div class="card">
+                <h2>Original</h2>
+                <img src="{orig_rel}" alt="Original">
+            </div>
+    """
+    
+    if json_img_rel:
+        html += f"""
+            <div class="card">
+                <h2>JSON Method</h2>
+                <img src="{json_img_rel}" alt="JSON Reconstructed">
+                <h3>Extracted Data</h3>
+                <pre>{json_display}</pre>
+            </div>
+        """
+        
+    if svg_img_rel:
+        html += f"""
+            <div class="card">
+                <h2>JSON + SVG Method</h2>
+                <img src="{svg_img_rel}" alt="SVG Reconstructed">
+                <h3>Extracted Data</h3>
+                <pre>{svg_display}</pre>
+            </div>
+        """
+
+    html += """
+        </div>
+    </body>
+    </html>
+    """
+    
+    with open(output_file, "w") as f:
+        f.write(html)
+    print(f"HTML report generated: {output_file}")
+
 def batch_process(input_dir, output_dir):
     """Processes all images in a directory."""
     input_path = Path(input_dir)
